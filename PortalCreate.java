@@ -40,8 +40,8 @@ public class PortalCreate implements Listener {
 	  private Connection conn = null;
 	  private Statement stmt = null;
 	
-	public Map<Location, String> protect = new HashMap<Location, String>();	
-	public Map<Location, String> signs = new HashMap<Location, String>();	
+	private Map<Location, String> protect = new HashMap<Location, String>();	
+	private Map<Location, String> signs = new HashMap<Location, String>();	
 	
 	public main plugin = main.getPlugin();
 	
@@ -51,7 +51,7 @@ public class PortalCreate implements Listener {
 
 
 	@EventHandler
-	public void onPlayerInteract(PlayerInteractEvent event) {
+	private void onPlayerInteract(PlayerInteractEvent event) {
 	    Player p = event.getPlayer();
 	    if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
 	        Block clicked = event.getClickedBlock();
@@ -87,7 +87,7 @@ public class PortalCreate implements Listener {
 
 	// Create portal //
 	@EventHandler
-	public void onSignChanged(SignChangeEvent event) {
+	private void onSignChanged(SignChangeEvent event) {
 		Player p = event.getPlayer();
 		String uuid = p.getUniqueId().toString();
 		Sign s = (Sign) event.getBlock().getState().getData();
@@ -104,22 +104,16 @@ public class PortalCreate implements Listener {
 							String locatachedstring = locatched.getWorld().getName() + " , " +  locatched.getX() + " , " + locatched.getY() + " , " + locatched.getZ()+ " , " + locatched.getPitch() + " , " + locatched.getYaw();
 							Location locblock = event.getBlock().getLocation();
 							String locblockstring = locblock.getWorld().getName() + " , " +  locblock.getX() + " , " + locblock.getY() + " , " + locblock.getZ()+ " , " + locblock.getPitch() + " , " + locblock.getYaw();
-							if (lines[3].equalsIgnoreCase("private")) { 
-									String line3 = "§4[Private]";
-									int teleid = sqlFindCreateID(lines[2]);
-									writeSign(event.getBlock().getLocation(),p.getDisplayName(),lines[1],lines[2],line3); 
-				                    sqlCreate(p.getDisplayName(),locatachedstring,teleid,lines[2],1,uuid,locblockstring,1,p);
-				                    updateOnPrivateChange(lines[2],line3,event.getBlock().getLocation());
-				                    sqlTeleCheck(lines[2]);
-									} else { 
-										String line3 = "§2[Public]";
-										int teleid = sqlFindCreateID(lines[2]);
-										writeSign(event.getBlock().getLocation(),p.getDisplayName(),lines[1],lines[2],line3); 
-					                    sqlCreate(p.getDisplayName(),locatachedstring,teleid,lines[2],0,uuid,locblockstring,1,p);
-					                    updateOnPrivateChange(lines[2],line3,event.getBlock().getLocation());
-					                    sqlTeleCheck(lines[2]);
-										}
+							String line3 = "§2[Public]";
+							int priv = 0;
+							if (lines[3].equalsIgnoreCase("private")) { line3 = "§4[Private]"; priv = 1; }
+								int teleid = sqlFindCreateID(lines[2]);
+								writeSign(event.getBlock().getLocation(),p.getDisplayName(),lines[1],lines[2],line3); 
+					            sqlCreate(p.getDisplayName(),locatachedstring,teleid,lines[2],priv,uuid,locblockstring,1,p,line3,event.getBlock().getLocation());
+					            sqlTeleCheck(lines[2]);
 								addToMap(attached.getLocation(),uuid,event.getBlock().getLocation());
+								updateOnPrivateChange(freq,line3);
+
 							} else { p.sendMessage("§3Sorry, this frequency is PRIVATE. Choose another"); }
 						} else { p.sendMessage("§3Frequency MUST be numeric!"); }
 					}
@@ -131,7 +125,7 @@ public class PortalCreate implements Listener {
 		
 	// PROTECTION //
 	@EventHandler
-	 public void onBlockPistonRetract(BlockPistonRetractEvent e) {
+	private void onBlockPistonRetract(BlockPistonRetractEvent e) {
 		BlockFace p = e.getDirection();
 		 Location l = e.getBlock().getRelative(p, -2).getLocation();
 		 if (isProtected(l)) {
@@ -140,7 +134,7 @@ public class PortalCreate implements Listener {
 	 }
 	
 	@EventHandler
-	 public void onBlockPistonRetract(BlockPistonExtendEvent e) {
+	private void onBlockPistonRetract(BlockPistonExtendEvent e) {
 		BlockFace p = e.getDirection();
 		 Location l = e.getBlock().getRelative(p, -1).getLocation();
 		 if (isProtected(l)) {
@@ -149,7 +143,7 @@ public class PortalCreate implements Listener {
 	 }
 	 
 	 @EventHandler
-	 public void onPlace(BlockPlaceEvent e) {
+	 private void onPlace(BlockPlaceEvent e) {
 		 if (e.getBlockPlaced().getType() == Material.WALL_SIGN) {
 			 if (e.getBlockAgainst().getType() == Material.WOOL) {
 				if (isProtected(e.getBlockAgainst().getLocation())) {
@@ -159,7 +153,7 @@ public class PortalCreate implements Listener {
 		 }
 	 }
 	 @EventHandler
-	 public void onBlockBreakEvent(BlockBreakEvent e) {
+	 private void onBlockBreakEvent(BlockBreakEvent e) {
 		 Player p = (Player) e.getPlayer();
 		 String uuid = e.getPlayer().getUniqueId().toString();
 		 Block block = e.getBlock();
@@ -181,20 +175,20 @@ public class PortalCreate implements Listener {
 		}
 	  }
 	 
-	public boolean isProtected(Location loc) {
+	 private boolean isProtected(Location loc) {
 		 if (protect.get(loc) != null) {
 		 return true;
 		 }
 		 return false;
 	}
-	public boolean isSignProtected(Location loc,String uuid) {
+	 private boolean isSignProtected(Location loc,String uuid) {
 		 if (signs.get(loc).equals(uuid)) {
 		 return true;
 		 }
 		 return false;
 	}
 	
-	private void writeSign(Location loc,String p,String line1,String line2,String line3) {
+	 private void writeSign(Location loc,String p,String line1,String line2,String line3) {
 		final Location l = loc;
 		final String player = p;
 		final String lin1 = line1;
@@ -237,12 +231,12 @@ public class PortalCreate implements Listener {
 			protect.put(l, s);
 			signs.put(sign, s);
 	}
-	public static boolean isNumeric(String str)
+	private static boolean isNumeric(String str)
 	{
 	  return str.matches("-?\\d+(\\.\\d+)?");
 	}
 	
-	public Location stringToLocation(String key){
+	private Location stringToLocation(String key){
         String[] split = key.split(" , ");
         if(split.length == 6){
         Location loc = new Location(Bukkit.getWorld(split[0]), Double.parseDouble(split[1]), Double.parseDouble(split[2]), Double.parseDouble(split[3]), Float.parseFloat(split[4]), Float.parseFloat(split[5]));
@@ -310,7 +304,7 @@ public class PortalCreate implements Listener {
 	   		finally{try{if(stmt!=null)stmt.close();}catch(SQLException se2){}try{if(conn!=null)conn.close();}catch(SQLException se){se.printStackTrace();}}
 	 }
 	
-	public void sqlTeleCheck(String freq) {
+	private void sqlTeleCheck(String freq) {
 		   try{
 			      Class.forName("com.mysql.jdbc.Driver");
 			      conn = DriverManager.getConnection(DB_URL,USER,PASS);
@@ -332,7 +326,7 @@ public class PortalCreate implements Listener {
 	   		finally{try{if(stmt!=null)stmt.close();}catch(SQLException se2){}try{if(conn!=null)conn.close();}catch(SQLException se){se.printStackTrace();}}
 	 }
 	
-	public void sqlTeledelete(String freq) {
+	private void sqlTeledelete(String freq) {
 		   try{
 			      Class.forName("com.mysql.jdbc.Driver");
 			      conn = DriverManager.getConnection(DB_URL,USER,PASS);
@@ -372,7 +366,7 @@ public class PortalCreate implements Listener {
 		finally{try{if(statement!=null)statement.close();}catch(SQLException se2){}try{if(connect!=null)connect.close();}catch(SQLException se){se.printStackTrace();}}
 	}
 	
-	public void sqlRemove(String loc) {
+	private void sqlRemove(String loc) {
 		   try{
 			      Class.forName("com.mysql.jdbc.Driver");
 			      connect = DriverManager.getConnection(DB_URL,USER,PASS);
@@ -386,7 +380,7 @@ public class PortalCreate implements Listener {
 	 }
 
 	
-	public void updateOnPrivateChange(String freq,String too,Location loc) {
+	private void updateOnPrivateChange(String freq,String too) {
 		int to;
 		if (too.equals("§4[Private]")) { to = 1; }
 		else { to = 0; }
@@ -408,7 +402,7 @@ public class PortalCreate implements Listener {
 	   		finally{try{if(stmt!=null)stmt.close();}catch(SQLException se2){}try{if(conn!=null)conn.close();}catch(SQLException se){se.printStackTrace();}}
 	 }
 	
-	public boolean isPrivate(String i) {
+	private boolean isPrivate(String i) {
 		   try{
 			      Class.forName("com.mysql.jdbc.Driver");
 			      conn = DriverManager.getConnection(DB_URL,USER,PASS);
@@ -421,7 +415,7 @@ public class PortalCreate implements Listener {
 	   		finally{try{if(stmt!=null)stmt.close();}catch(SQLException se2){}try{if(conn!=null)conn.close();}catch(SQLException se){se.printStackTrace();}}return true;
 	 }
 	
-	public boolean isOwner(String uuid,String freq) {
+	private boolean isOwner(String uuid,String freq) {
 		   try{
 			      Class.forName("com.mysql.jdbc.Driver");
 			      conn = DriverManager.getConnection(DB_URL,USER,PASS);
@@ -435,21 +429,16 @@ public class PortalCreate implements Listener {
 	 }
 
 
-	private void sqlCreate(String owner,String loc,int tele,String freq,int priv,String uuid,String sign_loc,int active,Player p) {
+	private void sqlCreate(String owner,String loc,int tele,String freq,int priv,String uuid,String sign_loc,int active,Player p,String too,Location loco) {
 		   try{
 			      Class.forName("com.mysql.jdbc.Driver");
 			      conn = DriverManager.getConnection(DB_URL,USER,PASS);
 			      stmt = conn.createStatement();
 			      String sql;
-			      sql = "SELECT * from portals WHERE Freq='"+freq+"' AND Private='1';";
-			      ResultSet rs = stmt.executeQuery(sql);
-			      if (rs.next()) { 
-			      } else { 
-			      		sql = "INSERT INTO portals(Owner,Location,Tele_id,Freq,Private,uuid,sign_loc,active)"
-			      				+ "VALUES ('"+owner+"','"+loc+"','"+tele+"','"+freq+"','"+priv+"','"+uuid+"','"+sign_loc+"','"+active+"')";
-			      		stmt.executeUpdate(sql);
-			      		}
-			      rs.close();stmt.close();conn.close();
+			      sql = "INSERT INTO portals(Owner,Location,Tele_id,Freq,Private,uuid,sign_loc,active)"
+			      + "VALUES ('"+owner+"','"+loc+"','"+tele+"','"+freq+"','"+priv+"','"+uuid+"','"+sign_loc+"','"+active+"')";
+			      stmt.executeUpdate(sql);
+			      ;stmt.close();conn.close();
 		   }catch(SQLException se){se.printStackTrace();}catch(Exception e){e.printStackTrace();}
 	   		finally{try{if(stmt!=null)stmt.close();}catch(SQLException se2){}try{if(conn!=null)conn.close();}catch(SQLException se){se.printStackTrace();}}}
 	
@@ -479,6 +468,7 @@ public class PortalCreate implements Listener {
 	      .executeQuery("SELECT * from portals WHERE Freq='"+fre+"' GROUP BY Freq;");
 	      while (resultSet.next()) {
 	    	  int freq = resultSet.getInt("Freq");
+	    	  stmt.close();
 	    	  sqlFreqAmount(freq);
 	      }
 	      stmt.close();connect.close();
