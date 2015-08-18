@@ -170,7 +170,7 @@ public class PortalCreate implements Listener {
 				removePortalProtection(attached.getLocation(),e.getBlock().getLocation());
 				sqlFreqGetCount(msg.substring(2));
 				sqlTeledelete(msg.substring(2));
-				} else { e.getPlayer().sendMessage("§3Sorry, we cant just having you go around breaking other peoples stuff!"); e.setCancelled(true); }
+				} else { e.getPlayer().sendMessage("§3Sorry, we cant just having you go around breaking other people\'s stuff!"); e.setCancelled(true); }
 			}
 		}
 	  }
